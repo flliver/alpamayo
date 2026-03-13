@@ -292,11 +292,6 @@ def visualize_clip_with_trajectories(
     frames = video_data["image_frames"][0]  # [num_frames, 3, H, W]
     frames = frames.permute(0, 2, 3, 1).cpu().numpy()  # [num_frames, H, W, 3]
     frames = (frames * 255).astype(np.uint8)
-
-    # Convert BGR to RGB (PyAV may actually return BGR despite format="rgb24")
-    import cv2
-    frames = np.array([cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) for frame in frames])
-
     print(f"   Loaded {len(frames)} frames, shape: {frames[0].shape}")
 
     # Create trajectory overlay
@@ -333,27 +328,21 @@ def visualize_clip_with_trajectories(
 
         output_frames.append(composed)
 
-    # Save video (try mediapy, fallback to opencv if ffmpeg not available)
+    # Save video using OpenCV (handles RGB to BGR conversion properly)
     print(f"\n7. Saving video to {output_path}...")
-    try:
-        # Mediapy expects RGB frames (no conversion needed)
-        mp.write_video(output_path, output_frames, fps=fps)
-        print(f"   Video saved with mediapy! ({len(output_frames)} frames @ {fps} fps)")
-    except RuntimeError as e:
-        if "ffmpeg" in str(e):
-            print("   ffmpeg not found, using opencv instead...")
-            import cv2
-            height, width = output_frames[0].shape[:2]
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-            for frame in output_frames:
-                # Convert RGB to BGR for opencv
-                frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-                out.write(frame_bgr)
-            out.release()
-            print(f"   Video saved with opencv! ({len(output_frames)} frames @ {fps} fps)")
-        else:
-            raise
+    import cv2
+
+    height, width = output_frames[0].shape[:2]
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
+    for frame in output_frames:
+        # Convert RGB to BGR for OpenCV
+        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        out.write(frame_bgr)
+
+    out.release()
+    print(f"   Video saved with OpenCV! ({len(output_frames)} frames @ {fps} fps)")
 
     # Also save a single comparison image
     comparison_path = output_path.replace('.mp4', '_comparison.png')
