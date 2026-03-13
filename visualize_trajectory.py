@@ -292,6 +292,11 @@ def visualize_clip_with_trajectories(
     frames = video_data["image_frames"][0]  # [num_frames, 3, H, W]
     frames = frames.permute(0, 2, 3, 1).cpu().numpy()  # [num_frames, H, W, 3]
     frames = (frames * 255).astype(np.uint8)
+
+    # Convert BGR to RGB (PyAV may actually return BGR despite format="rgb24")
+    import cv2
+    frames = np.array([cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) for frame in frames])
+
     print(f"   Loaded {len(frames)} frames, shape: {frames[0].shape}")
 
     # Create trajectory overlay
@@ -331,10 +336,8 @@ def visualize_clip_with_trajectories(
     # Save video (try mediapy, fallback to opencv if ffmpeg not available)
     print(f"\n7. Saving video to {output_path}...")
     try:
-        # Convert RGB to BGR for video encoding
-        import cv2
-        output_frames_bgr = [cv2.cvtColor(frame, cv2.COLOR_RGB2BGR) for frame in output_frames]
-        mp.write_video(output_path, output_frames_bgr, fps=fps)
+        # Mediapy expects RGB frames (no conversion needed)
+        mp.write_video(output_path, output_frames, fps=fps)
         print(f"   Video saved with mediapy! ({len(output_frames)} frames @ {fps} fps)")
     except RuntimeError as e:
         if "ffmpeg" in str(e):
