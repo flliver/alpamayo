@@ -43,9 +43,11 @@ venv: $(VENV)
 install: $(VENV)
 	@echo "Installing dependencies..."
 	$(PIP) install --upgrade pip setuptools wheel
-	$(PIP) install -e .
+	$(PIP) install -r requirements.txt
 	@echo ""
 	@echo "✓ Installation complete!"
+	@echo ""
+	@echo "Note: alpamayo_r1 will be available via PYTHONPATH (auto-set by make commands)"
 	@echo ""
 	@echo "Next steps:"
 	@echo "  - Run 'make check-hf' to verify HuggingFace access"
@@ -61,7 +63,7 @@ install-dev: $(VENV)
 
 check-hf: $(VENV)
 	@echo "Checking HuggingFace access..."
-	@$(PYTHON_BIN) check_access.py
+	@PYTHONPATH=$(shell pwd)/src:$$PYTHONPATH $(PYTHON_BIN) check_access.py
 
 demo-quick:
 	@echo "Running demo using existing ar1_venv..."
@@ -70,6 +72,7 @@ demo-quick:
 		exit 1; \
 	fi
 	@export PATH="$$HOME/.local/bin:$$PATH" && \
+	 export PYTHONPATH="$(shell pwd)/src:$$PYTHONPATH" && \
 	 . ar1_venv/bin/activate && \
 	 python demo_inference.py
 
@@ -77,13 +80,13 @@ demo: $(VENV)
 	@echo "Running demo inference with synthetic data..."
 	@echo "(Model will download on first run - 22GB, ~5 min)"
 	@echo ""
-	@$(PYTHON_BIN) demo_inference.py
+	@PYTHONPATH=$(shell pwd)/src:$$PYTHONPATH $(PYTHON_BIN) demo_inference.py
 
 run-eval: $(VENV)
 	@echo "Running evaluation with real dataset..."
 	@echo "(Requires HuggingFace access to PhysicalAI-Autonomous-Vehicles)"
 	@echo ""
-	@$(PYTHON_BIN) src/alpamayo_r1/test_inference.py
+	@PYTHONPATH=$(shell pwd)/src:$$PYTHONPATH $(PYTHON_BIN) src/alpamayo_r1/test_inference.py
 
 test: demo
 
