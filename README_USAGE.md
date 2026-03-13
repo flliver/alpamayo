@@ -63,16 +63,25 @@ make clean        # Remove venv and cache
 
 ## 🔧 Manual Usage
 
-### Using Existing ar1_venv (uv-based)
+### Easy Way (Recommended)
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
-source ar1_venv/bin/activate
+source activate.sh
 python demo_inference.py
 ```
 
-### Using New venv (pip-based)
+The `activate.sh` script activates the venv AND sets PYTHONPATH automatically.
+
+### Manual Way
 ```bash
+# Using venv
 source venv/bin/activate
+export PYTHONPATH=/home/ANT.AMAZON.COM/fliver/gt/vla_eval/mayor/rig/alpamayo/src:$PYTHONPATH
+python demo_inference.py
+
+# Or using ar1_venv
+export PATH="$HOME/.local/bin:$PATH"
+source ar1_venv/bin/activate
+export PYTHONPATH=/home/ANT.AMAZON.COM/fliver/gt/vla_eval/mayor/rig/alpamayo/src:$PYTHONPATH
 python demo_inference.py
 ```
 
@@ -104,9 +113,10 @@ alpamayo/
 
 ## 🐛 Troubleshooting
 
-### "ModuleNotFoundError: No module named 'torch'"
-→ Use `make demo-quick` instead of running script directly
-→ Or activate venv: `source ar1_venv/bin/activate`
+### "ModuleNotFoundError: No module named 'torch'" or "No module named 'alpamayo_r1'"
+→ Use `make demo` or `make demo-quick` (handles PYTHONPATH automatically)
+→ Or use helper: `source activate.sh` then run your script
+→ Or set manually: `export PYTHONPATH=$(pwd)/src:$PYTHONPATH`
 
 ### "CUDA out of memory"
 → GPU needs ≥24GB VRAM
