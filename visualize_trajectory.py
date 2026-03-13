@@ -291,8 +291,9 @@ def visualize_clip_with_trajectories(
 
     frames = video_data["image_frames"][0]  # [num_frames, 3, H, W]
     frames = frames.permute(0, 2, 3, 1).cpu().numpy()  # [num_frames, H, W, 3]
-    frames = (frames * 255).astype(np.uint8)
-    print(f"   Loaded {len(frames)} frames, shape: {frames[0].shape}")
+    # Frames are already uint8 [0, 255] from the video loader, no scaling needed
+    frames = frames.astype(np.uint8)
+    print(f"   Loaded {len(frames)} frames, shape: {frames[0].shape}, dtype: {frames.dtype}")
 
     # Create trajectory overlay
     print("\n5. Creating trajectory overlay...")
